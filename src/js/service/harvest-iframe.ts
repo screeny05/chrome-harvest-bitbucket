@@ -107,9 +107,6 @@ export class HarvestIframe {
         if($iframe.src === src){
             return;
         }
-        console.log('change');
-        console.log($iframe.src);
-        console.log(src);
 
         $iframe.src = src;
     }

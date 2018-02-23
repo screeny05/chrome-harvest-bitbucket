@@ -3,7 +3,6 @@ import { injectScript } from '../helper/injector';
 export function observePrContentChange(cb: (tab: string) => void): void {
     injectScript(`
         const $prContent = $('#pr-tab-content');
-        console.log($prContent);
         if($prContent.length === 0){
             throw new Error('Page is not a PR');
         }
