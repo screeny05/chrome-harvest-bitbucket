@@ -70,7 +70,7 @@ export class HarvestIframe {
             external_group_id: this.dataProvider.getGroupId(),
             permalink: this.dataProvider.getMainLink(),
             chromeless: true,
-            closeable: false
+            closable: false
         });
     }
 
