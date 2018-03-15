@@ -1,13 +1,13 @@
 import { AggregatedDataProvider } from '../provider/aggregated-data';
-import { injectBefore } from '../helper/injector';
+import { injectBefore, injectPrInfoBeforeDescription } from '../helper/injector';
 import { buildUrl } from "../helper/url-builder";
 import { observePrContentChange } from "./pr-content-observer";
+import { ORIGIN_HARVEST } from '../origin';
 
-const HARVEST_ORIGIN_URL = 'https://platform.harvestapp.com';
-const HARVEST_TIMER_URL = `${HARVEST_ORIGIN_URL}/platform/timer`;
+const HARVEST_TIMER_URL = `${ORIGIN_HARVEST}/platform/timer`;
 
 const defaults = {
-    harvestOriginUrl: HARVEST_ORIGIN_URL,
+    harvestOriginUrl: ORIGIN_HARVEST,
     harvestTimerUrl: HARVEST_TIMER_URL,
     jiraOriginUrl: 'https://bestit.atlassian.net',
 };
@@ -28,6 +28,9 @@ export class HarvestIframe {
             return;
         }
 
+        injectPrInfoBeforeDescription('epic', 'Jira Epic', '...');
+        injectPrInfoBeforeDescription('iframe', 'Harvest', '...');
+
         this.registerEvents();
         this.init();
     }
@@ -35,7 +38,18 @@ export class HarvestIframe {
     async init(): Promise<void> {
         await this.dataProvider.load();
         this.buildIframe();
-        this.injectIframe();
+
+        const epicTitles = this.dataProvider.issues.map(issue => issue.epicTitle);
+
+        injectPrInfoBeforeDescription(
+            'epic',
+            'Jira Epic',
+            epicTitles
+                .filter((issue, i, issues) => !!issue && issues.indexOf(issue) === i)
+                .map(title => `<span class="aui-lozenge aui-lozenge-subtle">${title}</span>`)
+                .join(' ')
+        );
+        injectPrInfoBeforeDescription('iframe', 'Harvest', this.$iframe);
     }
 
     registerEvents(): void {
@@ -50,6 +64,13 @@ export class HarvestIframe {
 
         if(e.data.type === 'frame:resize'){
             this.$iframe.style.height = e.data.value + 'px';
+        }
+
+        if(e.data.type === 'frame:load'){
+            this.$iframe.contentWindow.postMessage({
+                type: 'set:epic',
+                value: this.dataProvider.issues.map(issue => issue.epicTitle).filter(title => !!title)
+            }, ORIGIN_HARVEST);
         }
     }
 
@@ -72,25 +93,6 @@ export class HarvestIframe {
             chromeless: true,
             closable: false
         });
-    }
-
-    injectIframe(): void {
-        const $insertAfter = this.getInjectionDestination();
-        const isInjected = document.querySelector('#pull-request-diff-header .__scn-harvest-iframe');
-        if(!$insertAfter || isInjected){
-            return;
-        }
-
-        injectBefore(this.$iframe, $insertAfter);
-    }
-
-    getInjectionDestination(): Element | null {
-        const $description = document.querySelector('#pull-request-diff-header .description');
-        if(!$description){
-            console.warn('Cannot find injection destination');
-            return null;
-        }
-        return $description;
     }
 
     buildIframe(): void {

@@ -6,6 +6,7 @@
   "author": "Sebastian Langer <sl@scn.cx>",
   "license": "MIT",
   "devDependencies": {
+    "babel-env": "^2.4.1",
     "typescript": "^2.7.2"
   },
   "dependencies": {

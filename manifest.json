@@ -3,7 +3,7 @@
 
     "name": "chrome-harvest-bitbucket",
     "description": "Harvest Bitbucket Integration",
-    "version": "1.0.1",
+    "version": "1.1.0",
     "icons": {
         "16": "images/icon@16px.png",
         "48": "images/icon@48px.png",
@@ -13,7 +13,8 @@
     "content_scripts": [{
        "css": ["css/bitbucket.css"],
        "js": ["dist/index.js"],
-       "matches": ["https://bitbucket.org/*"]
+       "all_frames": true,
+       "matches": ["https://bitbucket.org/*", "https://platform.harvestapp.com/*"]
     }],
 
     "permissions": [

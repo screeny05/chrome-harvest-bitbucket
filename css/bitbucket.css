@@ -1,5 +1,13 @@
+.__scn-harvest-iframe,
+.__scn-harvest-epic {
+    line-height: 2.28571429;
+}
+
 .__scn-harvest-iframe {
     width: 100%;
-    height: 320px;
-    padding-left: 110px;
+    min-height: 320px;
+}
+
+.__scn-harvest-iframe dd {
+    padding-top: 7px;
 }
