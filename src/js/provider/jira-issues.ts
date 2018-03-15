@@ -11,7 +11,7 @@ export interface JiraIssueData {
     projectTitle: string;
     epicTitle?: string;
     epicKey?: string;
-    version: string;
+    version?: string;
 }
 
 const issueCache = new Map<string, JiraIssueData>();
@@ -43,6 +43,8 @@ export async function getJiraIssueData(host: string, issueKeys: string[]): Promi
     const issueData: JiraIssueData[] = result.issues!.map(issue => {
         const { project } = issue.fields;
 
+        const version = issue.fields.fixVersions && issue.fields.fixVersions.length > 0 ? issue.fields.fixVersions[0].name : null;
+
         return {
             issueKey: issue.key,
             issueId: issue.id,
@@ -50,7 +52,7 @@ export async function getJiraIssueData(host: string, issueKeys: string[]): Promi
             projectKey: project.key,
             projectId: project.id,
             projectTitle: project.name,
-            version: issue.fields.fixVersions[0].name,
+            version: version,
             epicKey: issue.fields[EPIC_CUSTOMFIELD_ID]
         };
     });

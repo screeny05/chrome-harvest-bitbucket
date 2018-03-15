@@ -47,7 +47,7 @@ export class HarvestIframe {
             epicTitles
                 .filter((issue, i, issues) => !!issue && issues.indexOf(issue) === i)
                 .map(title => `<span class="aui-lozenge aui-lozenge-subtle">${title}</span>`)
-                .join(' ')
+                .join(' ') || '<span class="aui-lozenge aui-lozenge-subtle" title="Epic could not be found. Maybe it\'s a sub-issue?">?</span>'
         );
         injectPrInfoBeforeDescription('iframe', 'Harvest', this.$iframe);
     }
