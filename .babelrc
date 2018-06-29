@@ -1,11 +1,10 @@
 {
     "presets": [
-        "env",
-        "stage-0"
+        "latest"
     ],
     "plugins": [
         "transform-class-properties",
-        "transform-decorators",
+        "transform-decorators"
     ],
     "ignore": [
         "node_modules"

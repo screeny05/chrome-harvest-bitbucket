@@ -25,6 +25,9 @@ declare namespace jira {
         name: string;
         subtask: boolean;
         avatarId: number;
+        fields?: {
+            [name: string]: IField;
+        }
     }
     export interface IProjectPartial {
         self: string;
@@ -53,7 +56,7 @@ declare namespace jira {
             name: string;
             isAssigneeTypeValid: boolean;
         }[];
-        issueTypes: IIssueType[];
+        issuetypes: IIssueType[];
         assigneeType: string;
         versions: any[];
         name: string;
@@ -66,6 +69,17 @@ declare namespace jira {
         };
         avatarUrls: IAvatarUrls
         projectTypeKey: string;
+    }
+    export interface IField {
+        required: boolean;
+        schema: {
+            type: string;
+            system: string;
+        }
+        name: string;
+        key: string;
+        hasDefaultValue: boolean;
+        operations: boolean[];
     }
     export interface IAttachment {
         self: string;
@@ -205,5 +219,10 @@ declare namespace jira {
     export interface ISearch {
         errorMessages?: string[];
         issues?: jira.IIssue[];
+    }
+
+    export interface ICreateMeta {
+        expand: string;
+        projects: IProject[];
     }
 }

@@ -8,14 +8,14 @@ export class AggregatedDataProvider {
     issues: JiraIssueData[] = [];
     urlData: BitbucketPrUrlParser;
 
-    constructor(private jiraHost: string){
+    constructor(private jiraHosts: string[]){
         this.urlData = new BitbucketPrUrlParser();
     }
 
     async load(){
         try {
             this.issueKeys = await this.findReferencedIssueKeys();
-            this.issues = await getJiraIssueData(this.jiraHost, this.issueKeys);
+            this.issues = await getJiraIssueData(this.jiraHosts, this.issueKeys);
         } catch (e){
             console.warn('Cannot fetch issues', e);
         }
@@ -75,7 +75,8 @@ export class AggregatedDataProvider {
     }
     getMainLink(): string {
         if(this.issues.length > 0){
-            return this.jiraHost + '/browse/' + this.issues[0].issueKey;
+            console.log(this.issues)
+            //return this.jiraHost + '/browse/' + this.issues[0].issueKey;
         }
         return this.urlData.getPullRequestMainLink();
     }

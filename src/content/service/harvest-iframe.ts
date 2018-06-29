@@ -3,6 +3,8 @@ import { injectBefore, injectPrInfoBeforeDescription } from '../helper/injector'
 import { buildUrl } from "../helper/url-builder";
 import { observePrContentChange } from "./pr-content-observer";
 import { ORIGIN_HARVEST } from '../origin';
+import { getJiraOrigins } from '../provider/rpc';
+import { BitbucketPrUrlParser } from '../provider/url-parser';
 
 const HARVEST_TIMER_URL = `${ORIGIN_HARVEST}/platform/timer`;
 
@@ -21,10 +23,10 @@ export class HarvestIframe {
 
     constructor(opts?: Partial<HarvestIframeOptions>){
         this.opts = { ...{}, ...defaults, ...opts };
-        this.dataProvider = new AggregatedDataProvider(this.opts.jiraOriginUrl);
+        const urlParser = new BitbucketPrUrlParser();
 
         // only execute if we're on a pr page
-        if(!this.dataProvider.urlData.isPullRequest()){
+        if(!urlParser.isPullRequest()){
             return;
         }
 
@@ -36,6 +38,9 @@ export class HarvestIframe {
     }
 
     async init(): Promise<void> {
+        const origins = await getJiraOrigins();
+        const epicFields = await getJiraEpicKeys();
+        this.dataProvider = new AggregatedDataProvider(origins);
         await this.dataProvider.load();
         this.buildIframe();
 
@@ -66,7 +71,7 @@ export class HarvestIframe {
             this.$iframe.style.height = e.data.value + 'px';
         }
 
-        if(e.data.type === 'frame:load'){
+        if(e.data.type === 'frame:load' && this.$iframe.contentWindow){
             this.$iframe.contentWindow.postMessage({
                 type: 'set:epic',
                 value: this.dataProvider.issues.map(issue => issue.epicTitle).filter(title => !!title)

@@ -1,6 +1,7 @@
 import { fetchJson } from '../helper/fetch-json';
+import pMap from 'p-map';
 
-const EPIC_CUSTOMFIELD_ID = 'customfield_10008';
+const EPIC_CUSTOMFIELD_IDS = ['customfield_10008', 'customfield_10006'];
 
 export interface JiraIssueData {
     issueKey: string;
@@ -9,6 +10,7 @@ export interface JiraIssueData {
     projectKey: string;
     projectId: string;
     projectTitle: string;
+    priority: jira.IIssuePriority;
     epicTitle?: string;
     epicKey?: string;
     version?: string;
@@ -25,25 +27,21 @@ const getEpicTitle = (epicKey: string, epics: JiraIssueData[]): string | null =>
     return epic ? epic.issueTitle : null;
 }
 
-export async function getJiraIssueData(host: string, issueKeys: string[]): Promise<JiraIssueData[]> {
-    if(issueKeys.length === 0){
-        return [];
-    }
-
-    const uncachedKeys = getUncachedKeys(issueKeys);
-    if(uncachedKeys.length === 0){
-        return getCachedIssues(issueKeys);
-    }
-
-    const result = await fetchJson<jira.ISearch>(host + '/rest/api/2/search?jql=issueKey+in+(' + uncachedKeys.join(',') + ')');
+export function mapSearchResultsToIssueData(result: jira.ISearch): JiraIssueData[] {
     if(result.errorMessages){
         throw new Error(result.errorMessages.join('\n\n'));
     }
 
-    const issueData: JiraIssueData[] = result.issues!.map(issue => {
+    if(!result.issues){
+        return [];
+    }
+
+    return result.issues.map(issue => {
         const { project } = issue.fields;
 
         const version = issue.fields.fixVersions && issue.fields.fixVersions.length > 0 ? issue.fields.fixVersions[0].name : null;
+
+        const epicKey = EPIC_CUSTOMFIELD_IDS.map(id => issue.fields[id]).filter(key => !!key)[0];
 
         return {
             issueKey: issue.key,
@@ -53,9 +51,27 @@ export async function getJiraIssueData(host: string, issueKeys: string[]): Promi
             projectId: project.id,
             projectTitle: project.name,
             version: version,
-            epicKey: issue.fields[EPIC_CUSTOMFIELD_ID]
+            priority: issue.fields.priority,
+            epicKey
         };
     });
+}
+
+export async function getJiraIssueData(hosts: string[], issueKeys: string[]): Promise<JiraIssueData[]> {
+    if(issueKeys.length === 0){
+        return [];
+    }
+
+    const uncachedKeys = getUncachedKeys(issueKeys);
+    if(uncachedKeys.length === 0){
+        return getCachedIssues(issueKeys);
+    }
+
+    const results: jira.ISearch[] = await pMap(hosts, host =>
+        fetchJson<jira.ISearch>(host + '/rest/api/2/search?jql=issueKey+in+(' + uncachedKeys.join(',') + ')')
+    );
+
+    const issueData = (<JiraIssueData[]>[]).concat(...results.map(result => mapSearchResultsToIssueData(result)));
 
     // cache first in case we already fetched an epic
     cacheIssues(issueData);
@@ -64,7 +80,7 @@ export async function getJiraIssueData(host: string, issueKeys: string[]): Promi
         .map(issue => issue.epicKey)
         .filter((val, i, arr) => !!val && arr.indexOf(val) === i);
 
-    const epics = await getJiraIssueData(host, epicKeys);
+    const epics = await getJiraIssueData(hosts, epicKeys);
 
     issueData.forEach(issue => {
         if(!issue.epicKey){

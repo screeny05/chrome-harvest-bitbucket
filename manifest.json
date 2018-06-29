@@ -12,14 +12,30 @@
 
     "content_scripts": [{
        "css": ["css/bitbucket.css"],
-       "js": ["dist/index.js"],
+       "js": ["dist/content/index.js"],
        "all_frames": true,
        "matches": ["https://bitbucket.org/*", "https://platform.harvestapp.com/*"]
     }],
 
     "permissions": [
+        "contextMenus",
         "activeTab",
-        "storage",
-        "https://*.atlassian.net/"
-    ]
+        "storage"
+    ],
+
+    "optional_permissions": [
+        "http://*/*",
+        "https://*/*"
+    ],
+
+    "background": {
+        "scripts": ["dist/background/index.js"]
+    },
+
+    "options_ui": {
+        "page": "dist/options/index.html",
+        "open_in_tab": false
+    },
+
+    "content_security_policy": "script-src 'self' 'unsafe-eval'; object-src 'self'"
 }
