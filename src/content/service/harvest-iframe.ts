@@ -3,7 +3,7 @@ import { injectBefore, injectPrInfoBeforeDescription } from '../helper/injector'
 import { buildUrl } from "../helper/url-builder";
 import { observePrContentChange } from "./pr-content-observer";
 import { ORIGIN_HARVEST } from '../origin';
-import { getJiraOrigins } from '../provider/rpc';
+import { getJiraOrigins, getJiraEpicKeys } from '../provider/rpc';
 import { BitbucketPrUrlParser } from '../provider/url-parser';
 
 const HARVEST_TIMER_URL = `${ORIGIN_HARVEST}/platform/timer`;
