@@ -1,12 +1,12 @@
 import { fetchJson } from '../../content/helper/fetch-json';
 
 export interface JiraMetaData {
-    projectKeys: string[];
     fields: jira.IField[];
     host: string;
+    priorities: jira.IIssuePriority[];
 }
 
-export async function getJiraMeta(host: string): Promise<JiraMetaData> {
+export async function getJiraIssueFields(host: string): Promise<jira.IField[]> {
     const response = await fetchJson<jira.ICreateMeta>(host + '/rest/api/2/issue/createmeta?expand=projects.issuetypes.fields');
 
     // make sure fields are unique
@@ -23,9 +23,20 @@ export async function getJiraMeta(host: string): Promise<JiraMetaData> {
         });
     });
 
+    return Object.values(foundFields);
+}
+
+export async function getJiraIssuePriorities(host: string): Promise<jira.IIssuePriority[]> {
+    return await fetchJson<jira.IIssuePriority[]>(host + '/rest/api/2/priority');
+}
+
+export async function getJiraMeta(host: string): Promise<JiraMetaData> {
+    const fields = await getJiraIssueFields(host);
+    const priorities = await getJiraIssuePriorities(host);
+
     return {
-        projectKeys: response.projects.map(project => project.key),
-        fields: Object.values(foundFields),
+        fields,
+        priorities,
         host
     };
 }

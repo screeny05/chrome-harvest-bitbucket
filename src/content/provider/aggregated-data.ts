@@ -1,12 +1,26 @@
 import { getJiraIssueData, JiraIssueData } from './jira-issues';
-import { getBitbucketPrCommits, BitbucketCommitData } from './bitbucket-commits';
+import { getBitbucketPrCommits } from './bitbucket-commits';
 import { BitbucketPrUrlParser } from './url-parser';
 import { getIssueKeysFromText } from '../helper/issue-keys-from-text';
+import { get } from '../../background/provider/storage';
+
+interface UserSettings {
+    entryPrefix: string;
+    bitbucketDisplayEpics: boolean;
+    bitbucketDisplayPriority: boolean;
+}
 
 export class AggregatedDataProvider {
     issueKeys: string[] = [];
     issues: JiraIssueData[] = [];
     urlData: BitbucketPrUrlParser;
+    userSettings: UserSettings;
+
+    static UserSettingsDefaults: UserSettings = {
+        entryPrefix: '',
+        bitbucketDisplayEpics: true,
+        bitbucketDisplayPriority: false
+    }
 
     constructor(private jiraHosts: string[]){
         this.urlData = new BitbucketPrUrlParser();
@@ -16,9 +30,26 @@ export class AggregatedDataProvider {
         try {
             this.issueKeys = await this.findReferencedIssueKeys();
             this.issues = await getJiraIssueData(this.jiraHosts, this.issueKeys);
+            await this.loadSettings();
         } catch (e){
             console.warn('Cannot fetch issues', e);
         }
+    }
+
+    async loadSettings(): Promise<void> {
+        const defaults = AggregatedDataProvider.UserSettingsDefaults;
+        this.userSettings = { ...defaults };
+        await Promise.all(Object.keys(defaults).map(async (key) =>
+            this.userSettings[key] = await this.loadSetting(key, defaults[key])
+        ));
+    }
+
+    async loadSetting(key: string, defaultValue: any): Promise<void> {
+        const val = await get<any>(key);
+        if(typeof val === 'undefined' || val === null){
+            return defaultValue;
+        }
+        return val;
     }
 
     async findReferencedIssueKeys(){
@@ -67,6 +98,9 @@ export class AggregatedDataProvider {
         }
         return this.issueKeys.join(' ');
     }
+    getUserSummary(): string {
+        return (this.userSettings.entryPrefix || '') + this.getSummary();
+    }
     getGroupId(): string {
         if(this.issues.length > 0){
             return this.issues[0].projectId;
@@ -75,8 +109,8 @@ export class AggregatedDataProvider {
     }
     getMainLink(): string {
         if(this.issues.length > 0){
-            console.log(this.issues)
-            //return this.jiraHost + '/browse/' + this.issues[0].issueKey;
+            const [firstIssue] = this.issues;
+            return firstIssue.host + '/browse/' + firstIssue.issueKey;
         }
         return this.urlData.getPullRequestMainLink();
     }

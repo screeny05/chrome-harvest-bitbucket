@@ -1,10 +1,6 @@
 // borrowed from https://github.com/refined-bitbucket/refined-bitbucket/blob/dev/src/page-detect.js
 export class BitbucketPrUrlParser {
-    constructor(private origin = location.origin, private path = location.pathname){
-        if(!this.isPullRequest()){
-            throw new Error('Given Path is not a Pull Request');
-        }
-    }
+    constructor(private origin = location.origin, private path = location.pathname){ }
 
     isPullRequest(): boolean {
         return /^pull-requests\/\d+/.test(this.getRepoPath());

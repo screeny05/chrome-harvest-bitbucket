@@ -1,5 +1,6 @@
-import { getIssueKeysFromText } from '../helper/issue-keys-from-text';
+import { getIssueKeysFromText, getEpicKeysFromText } from '../helper/issue-keys-from-text';
 import { injectScript } from '../helper/injector';
+import flat from 'array.prototype.flat';
 
 interface HarvestAssignment {
     billable: number;
@@ -17,12 +18,8 @@ interface HarvestProject {
     task_assignments: HarvestAssignmentMap;
 }
 
-interface HarvestProjectMap {
-    [key: string]: HarvestProject;
-}
-
 export class HarvestReceiver {
-    projectData: HarvestProjectMap;
+    projectData: HarvestProject[];
 
     constructor(){
         this.projectData = this.getProjectData();
@@ -41,28 +38,56 @@ export class HarvestReceiver {
         }
 
         if(e.data.type === 'set:epic'){
-            this.setEpic(getIssueKeysFromText(e.data.value.join(', ')));
+            this.setEpic(getEpicKeysFromText(e.data.value.join(', ')));
+        }
+
+        if(e.data.type === 'set:summary'){
+            this.setSummary(e.data.value);
         }
     }
 
-    getProjectData(): HarvestProjectMap {
+    getProjectData(): HarvestProject[] {
         const $projectData = document.querySelector('#projects-data-island');
         if(!$projectData || !$projectData.textContent){
             throw new Error('Projectdata not found');
         }
 
-        return JSON.parse($projectData.textContent);
+        const projectDataMap: { [key: string]: HarvestProject } = JSON.parse($projectData.textContent);
+        return Object.keys(projectDataMap).map(key => projectDataMap[key]);
     }
 
     setEpic(keys: string[]): void {
-        const key = Object.keys(this.projectData).find(projectKey => keys.indexOf(this.projectData[projectKey].code) !== -1);
-        if(!key){
+        let project = this.getProjectByEpicKeys(keys);
+
+        // if not found try again, this time more fuzzy
+        if(!project){
+            project = this.getProjectByEpicKeys(this.getEpicKeysFuzzy(keys));
+        }
+        if(!project){
             return;
         }
-        this.setProjectByKey(key);
+        this.setProjectById(project.id);
     }
 
-    setProjectByKey(key: string): void {
-        injectScript(`$('.js-project-selector').val(${JSON.stringify(key)}).trigger('chosen:updated').change();`);
+    getProjectByEpicKeys(keys: string[]): HarvestProject | undefined {
+        return this.projectData.find(project => keys.includes(project.code));
+    }
+
+    /**
+     * Transforms keys like INTPST-606-FE to INTPST-606 to accommodate
+     * for not-directly mapping epic keys.
+     *
+     * @param keys
+     */
+    getEpicKeysFuzzy(keys: string[]): string[] {
+        return flat(keys.map(key => getIssueKeysFromText(key)));
+    }
+
+    setProjectById(id: number): void {
+        injectScript(`$('.js-project-selector').val(${JSON.stringify(id)}).trigger('chosen:updated').change();`);
+    }
+
+    setSummary(summary: string): void {
+        injectScript(`$('.js-notes').val(${JSON.stringify(summary)});`);
     }
 }

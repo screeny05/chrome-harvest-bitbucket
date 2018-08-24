@@ -20,11 +20,14 @@
     "vue-template-compiler": "^2.5.16"
   },
   "dependencies": {
+    "array.prototype.flat": "^1.2.1",
     "babel-polyfill": "^6.26.0",
+    "chrome-bootstrap": "^1.5.0",
     "p-map": "^1.2.0",
     "regenerator-runtime": "^0.12.0",
     "vue": "^2.5.16",
     "vue-select": "^2.4.0",
+    "vuedraggable": "^2.16.0",
     "webext-domain-permission-toggle": "0.0.2"
   }
 }

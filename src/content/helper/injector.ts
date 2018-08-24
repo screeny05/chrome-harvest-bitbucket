@@ -54,6 +54,17 @@ export function injectPrInfoBeforeDescription(id: string, label: string, content
     }
 }
 
+export function hidePrInfo(id: string): void {
+    const idClass = '__scn-harvest-' + id;
+    const $infoContainer = document.querySelector<HTMLElement>('#pull-request-diff-header .' + idClass);
+
+    if(!$infoContainer){
+        return;
+    }
+
+    $infoContainer.style.display = 'none';
+}
+
 export function getPrInfoDescription(): Element | null {
     const $description = document.querySelector('#pull-request-diff-header .description');
     if(!$description){
