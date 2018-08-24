@@ -1,12 +1,35 @@
+<style>
+.chrome-bootstrap .frame .view,
+.chrome-bootstrap .frame .content {
+    overflow: visible;
+    padding-top: 0;
+}
+
+.chrome-bootstrap header {
+    position: relative;
+}
+
+.chrome-bootstrap .highlightable.draggable .handle {
+    height: auto;
+    bottom: 4px;
+}
+
+.v-select .selected-tag .close {
+    min-height: 0;
+    min-width: 0;
+}
+</style>
+
 <template>
-    <div>
-        <h4>{{ instance.host }}</h4>
+    <section>
+        <h3>Host: {{ instance.host }}</h3>
+        <p>Please select all fields which contain the epic-number</p>
         <v-select :options="instance.fields" label="name" multiple v-model="epicFields">
             <template slot="option" slot-scope="option">
                 {{ option.name }} ({{ option.key }})
             </template>
         </v-select>
-    </div>
+    </section>
 </template>
 
 <script lang="ts">
@@ -17,7 +40,7 @@ export default Vue.extend({
     props: ['instance'],
     data(){
         return {
-            epicFields: []
+            epicFields: [],
         }
     },
     async created(){

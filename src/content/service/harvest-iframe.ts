@@ -1,9 +1,8 @@
 import { AggregatedDataProvider } from '../provider/aggregated-data';
-import { injectBefore, injectPrInfoBeforeDescription } from '../helper/injector';
+import { injectBefore, injectPrInfoBeforeDescription, hidePrInfo } from '../helper/injector';
 import { buildUrl } from "../helper/url-builder";
-import { observePrContentChange } from "./pr-content-observer";
 import { ORIGIN_HARVEST } from '../origin';
-import { getJiraOrigins, getJiraEpicKeys } from '../provider/rpc';
+import { getJiraOrigins } from '../provider/rpc';
 import { BitbucketPrUrlParser } from '../provider/url-parser';
 
 const HARVEST_TIMER_URL = `${ORIGIN_HARVEST}/platform/timer`;
@@ -11,7 +10,6 @@ const HARVEST_TIMER_URL = `${ORIGIN_HARVEST}/platform/timer`;
 const defaults = {
     harvestOriginUrl: ORIGIN_HARVEST,
     harvestTimerUrl: HARVEST_TIMER_URL,
-    jiraOriginUrl: 'https://bestit.atlassian.net',
 };
 
 type HarvestIframeOptions = typeof defaults;
@@ -39,12 +37,19 @@ export class HarvestIframe {
 
     async init(): Promise<void> {
         const origins = await getJiraOrigins();
-        const epicFields = await getJiraEpicKeys();
         this.dataProvider = new AggregatedDataProvider(origins);
         await this.dataProvider.load();
         this.buildIframe();
 
         const epicTitles = this.dataProvider.issues.map(issue => issue.epicTitle);
+
+        if(!this.dataProvider.userSettings.bitbucketDisplayEpics){
+            hidePrInfo('epic');
+        }
+
+        if(!this.dataProvider.userSettings.bitbucketDisplayPriority){
+            //hidePrInfo('priority');
+        }
 
         injectPrInfoBeforeDescription(
             'epic',
@@ -59,7 +64,6 @@ export class HarvestIframe {
 
     registerEvents(): void {
         window.addEventListener('message', this.onHarvestMessage.bind(this));
-        observePrContentChange(this.onPrContentChange.bind(this));
     }
 
     onHarvestMessage(e: MessageEvent): void {
@@ -72,18 +76,13 @@ export class HarvestIframe {
         }
 
         if(e.data.type === 'frame:load' && this.$iframe.contentWindow){
-            this.$iframe.contentWindow.postMessage({
-                type: 'set:epic',
-                value: this.dataProvider.issues.map(issue => issue.epicTitle).filter(title => !!title)
-            }, ORIGIN_HARVEST);
+            this.setCustomHarvestData();
         }
     }
 
-    onPrContentChange(tab: string): void {
-        if(tab !== 'diff'){
-            return;
-        }
-        this.init();
+    async setCustomHarvestData(){
+        this.postIframeMessage('set:epic', this.dataProvider.issues.map(issue => issue.epicTitle).filter(title => !!title));
+        this.postIframeMessage('set:summary', this.dataProvider.getUserSummary());
     }
 
     // https://github.com/harvesthq/platform/blob/master/widget.md
@@ -106,6 +105,7 @@ export class HarvestIframe {
             $iframe = document.createElement('iframe');
             $iframe.frameBorder = '0';
             $iframe.className = '__scn-harvest-iframe';
+            $iframe.innerHTML = '...';
             this.$iframe = $iframe;
         }
 
@@ -116,5 +116,15 @@ export class HarvestIframe {
         }
 
         $iframe.src = src;
+    }
+
+    postIframeMessage(type: string, value: any): void {
+        if(!this.$iframe.contentWindow){
+            throw new Error('Content window not yet ready');
+        }
+
+        this.$iframe.contentWindow.postMessage({
+            type, value
+        }, ORIGIN_HARVEST);
     }
 }
