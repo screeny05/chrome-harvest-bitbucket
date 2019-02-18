@@ -23,6 +23,7 @@
 <template>
     <section>
         <h3>Host: {{ instance.host }}</h3>
+        <button @click="deleteInstance">Delete Host</button>
         <p>Please select all fields which contain the epic-number</p>
         <v-select :options="instance.fields" label="name" multiple v-model="epicFields">
             <template slot="option" slot-scope="option">
@@ -35,6 +36,7 @@
 <script lang="ts">
 import Vue from 'vue';
 import { get, store } from '../../background/provider/storage';
+import { getJiraOrigins } from '../../background/provider/jira-origins';
 
 export default Vue.extend({
     props: ['instance'],
@@ -44,7 +46,7 @@ export default Vue.extend({
         }
     },
     async created(){
-        const selectedFields = await get<any[]>('epicfield-' + this.instance.host);
+        const selectedFields = await get<any[]>('epicfield-' + this.instance.host, []);
         this.epicFields = this.instance.fields.filter(field => selectedFields.indexOf(field.key) !== -1);
     },
     watch: {
@@ -53,6 +55,12 @@ export default Vue.extend({
     methods: {
         async storeSelectedEpicFields(){
             await store('epicfield-' + this.instance.host, this.epicFields.map(epicField => epicField.key));
+        },
+        async deleteInstance(){
+            const origins = await getJiraOrigins();
+            const newInstances = origins.filter(origin => origin !== this.instance.host);
+            await store('instances', newInstances);
+            this.$emit('deleted');
         }
     }
 });

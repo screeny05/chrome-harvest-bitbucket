@@ -6,10 +6,11 @@ export async function store(key: string, value: any): Promise<void> {
     });
 }
 
-export async function get<T>(key: string): Promise<T> {
+export async function get<T>(key: string, fallback?: T): Promise<T> {
     return new Promise<T>(resolve => {
         chrome.storage.local.get([key], result => {
-            return resolve(result[key]);
+            const value = result[key] ? result[key] : fallback;
+            return resolve(value);
         });
     });
 }

@@ -1,12 +1,6 @@
-import domainPermissionToggle from 'webext-domain-permission-toggle';
 import { getJiraOrigins } from './provider/jira-origins';
 import { getJiraMeta } from './provider/jira-meta';
 import { getJiraEpicKeys } from './provider/jira-epic-keys';
-
-domainPermissionToggle.addContextMenu({
-    reloadOnSuccess: false
-});
-
 
 chrome.runtime.onMessage.addListener((req: { type: string, data?: any }, sender, respond) => {
     const { type, data } = req;

@@ -11,7 +11,7 @@
                 </p>
                 <button @click="reloadInstances">Reload Field Data</button>
                 <div v-for="instance in instances" :key="instance.key">
-                    <instance-fields :instance="instance"/>
+                    <instance-fields :instance="instance" @deleted="reloadInstances"/>
                 </div>
 
                 <form @submit="addInstance">
@@ -85,7 +85,7 @@ export default Vue.extend({
     },
     async created(){
         const cachedInstances = await cacheGet<JiraMetaData[]>('instances');
-        this.entryPrefix = await storageGet<string>('entryPrefix');
+        this.entryPrefix = await storageGet('entryPrefix', 'QA ');
         this.entryPrefix = this.entryPrefix.trim();
         this.entryMinTime = await storageGet<string>('entryMinTime');
         this.bitbucketDisplayPriority = await storageGet('bitbucketDisplayPriority');
@@ -130,6 +130,9 @@ export default Vue.extend({
                 }
                 try {
                     await fetchJson(this.addInstanceUrl + '/rest/api/2/serverInfo');
+                    const instances = await getJiraOrigins();
+                    instances.push(this.addInstanceUrl);
+                    storageStore('instances', instances);
                 } catch(e) {
                     this.isLoading = false;
                     this.invalidInstance = true;

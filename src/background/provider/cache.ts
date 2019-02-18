@@ -1,4 +1,8 @@
+const CACHE_PREFIX = 'scn-cache-';
+
 export async function store(key: string, value: any, timeoutInMin: number = 60): Promise<void> {
+    key = CACHE_PREFIX + key;
+
     return new Promise<void>(resolve => {
         const timeout = new Date(Date.now() + 1000 * 60 * timeoutInMin);
         chrome.storage.local.set({
@@ -9,6 +13,8 @@ export async function store(key: string, value: any, timeoutInMin: number = 60):
 }
 
 export async function get<T>(key: string): Promise<T> {
+    key = CACHE_PREFIX + key;
+
     return new Promise<T>(resolve => {
         chrome.storage.local.get([key, key + '_timeout'], result => {
             const value = result[key];

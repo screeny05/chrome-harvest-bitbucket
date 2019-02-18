@@ -1,6 +1,6 @@
 {
   "name": "chrome-harvest-bitbucket",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Chrome Extension for using Harvest in Bitbucket",
   "main": "manifest.json",
   "author": "Sebastian Langer <sl@scn.cx>",
@@ -13,8 +13,10 @@
     "@types/chrome": "0.0.69",
     "@types/p-map": "^1.1.0",
     "@vue/component-compiler-utils": "^2.0.0",
+    "babel-core": "^6.26.3",
     "babel-env": "^2.4.1",
     "babel-plugin-transform-runtime": "^6.23.0",
+    "babel-preset-latest": "^6.24.1",
     "babel-runtime": "^6.26.0",
     "typescript": "^2.7.2",
     "vue-template-compiler": "^2.5.16"
