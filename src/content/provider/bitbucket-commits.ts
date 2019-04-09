@@ -14,7 +14,7 @@ export async function getBitbucketPrCommits(host, repoUrl, prId): Promise<Bitbuc
 
     return result.values.map(commit => ({
         hash: commit.hash,
-        author: commit.author.user.username,
+        author: commit.author.raw,
         message: commit.message
     }));
 }

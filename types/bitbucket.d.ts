@@ -38,7 +38,7 @@ declare namespace bitbucket {
     export interface IAuthor {
         type: 'author';
         raw: string;
-        user: IUser;
+        user?: IUser;
     }
 
     export interface IUser {
