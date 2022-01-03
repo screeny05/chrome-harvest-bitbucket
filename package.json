@@ -5,31 +5,37 @@
   "main": "manifest.json",
   "author": "Sebastian Langer <sl@scn.cx>",
   "license": "MIT",
-  "browserslist": "last 3 Chrome versions",
+  "browserslist": ["last 3 Chrome versions"],
+  "scripts": {
+    "watch": "parcel --public-url /dist/ --no-minify --no-hmr src/background/index.ts src/content/index.ts src/options/index.html",
+    "build": "parcel build --public-url /dist/ --no-minify src/background/index.ts src/content/index.ts src/options/index.html"
+  },
   "alias": {
     "vue": "./node_modules/vue/dist/vue.common.js"
   },
   "devDependencies": {
     "@types/chrome": "0.0.69",
     "@types/p-map": "^1.1.0",
-    "@vue/component-compiler-utils": "^2.0.0",
+    "@vue/component-compiler-utils": "^2.6.0",
     "babel-core": "^6.26.3",
     "babel-env": "^2.4.1",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-latest": "^6.24.1",
     "babel-runtime": "^6.26.0",
-    "typescript": "^2.7.2",
-    "vue-template-compiler": "^2.5.16"
+    "cssnano": "^4.1.10",
+    "parcel": "^1.12.4",
+    "typescript": "^2.9.2",
+    "vue-template-compiler": "^2.6.10"
   },
   "dependencies": {
-    "array.prototype.flat": "^1.2.1",
+    "array.prototype.flat": "^1.2.2",
     "babel-polyfill": "^6.26.0",
     "chrome-bootstrap": "^1.5.0",
     "p-map": "^1.2.0",
-    "regenerator-runtime": "^0.12.0",
-    "vue": "^2.5.16",
-    "vue-select": "^2.4.0",
-    "vuedraggable": "^2.16.0",
+    "regenerator-runtime": "^0.12.1",
+    "vue": "^2.6.10",
+    "vue-select": "^2.6.4",
+    "vuedraggable": "^2.23.2",
     "webext-domain-permission-toggle": "0.0.2"
   }
 }
